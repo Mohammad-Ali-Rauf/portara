@@ -1,163 +1,222 @@
 # 🌐 Portara
 
-## Status: In Development
+## Status: In Development  
+**TL;DR:** Localhost → temporary URL → share. Done.  
+**📦 Requires:** [Bun](https://bun.sh) & TypeScript  
 
-**TL;DR:** Localhost → temporary URL → share. Done.
+> ⚠️ Linux/macOS only for now.  
+> 🪟 No Windows support planned (I don’t use it).  
+> 💡 PRs welcome—but Portara’s soul is **open-source**, and Windows just isn’t part of that world.
 
-Localhost sharing without the setup headache — one command, temporary URL, zero config nightmares.
+<details>
+<summary>💬 Why Bun only?</summary>
+> The whole stack runs on Bun – CLI, coordinator, dashboard. No Bun, no magic.  
+> “One runtime = one mental model.”
+</details>
 
-Portara gives you ephemeral tunnels with literally one command. No accounts, no cloud signups, no YAML files to cry over. Just share and go.
+---
 
 ```
-🔒 All tunnels are end-to-end encrypted.
-   Why trust me? Two reasons:
-     1️⃣ I’m too broke to afford a server—so good luck finding your data on my cloud (spoiler: it doesn’t exist).
-     2️⃣ I’ve got zero interest in your data—because unlike some folks, I don’t dream of federal prison. 😅
+🔒 All tunnels are end-to-end encrypted.  
+   Why trust me?  
+     1️⃣ I’m too broke to afford a server that could log your data (I’d rather buy a GPU for local LLMs).  
+     2️⃣ Zero interest in your data—I’ve got plenty of my own chaos already.  
+     3️⃣ The source is public. Go ahead, peek.
 ```
 
-*("Wait, where's the setup?" There isn't any. That's the magic. 😂)*
+*(“Wait, where's the setup?” There isn’t any. That’s the magic.)*
 
 ---
 
 ## 🚨 The Problem
 
-Trying to show your local work shouldn't require:
+Trying to show your local work **shouldn’t** require:
+- Creating yet another SaaS account  
+- Reading 47 pages of docs  
+- Debugging `docker-compose.yml` until 3 AM  
+- Becoming an HTTP/2 expert *(we have lives, people)*
 
-- Creating yet another SaaS account
-- Reading 47 pages of documentation
-- Configuring docker-compose files until 3AM
-- Understanding networking protocols (we have lives, people)
-
-You just want to share. Not become a DevOps engineer(I've suffered so you don't have to 😉).
+You just wanna share. Not become a DevOps engineer.  
+*(I’ve suffered so you don’t have to.)*
 
 ---
 
 ## 💡 The Solution
 
-> Reality Check: **only Linux is supported for now**, will add support later for windows and macos (if needed).
-> 💡 Want macOS/Windows support? Do it yourself, PRs welcome.
+> ⏱️ URLs are **ephemeral** — 15 minutes by default. Adjust in `portara.toml` if needed.
 
-Literally this: (copy-paste, don't overthink it) 
-
-> Yeah, it’s on Netlify. But you can read the script in the root of this repository, ain't nobody hacking you, and netlify is only hosting the script, everything else is local.
 ```bash
-curl -fsSL https://install.portara.netlify.app | bash  
+curl -fsSL https://install.portara.netlify.app | sh -
 portara expose 3000
 ```
 
-Boom. You get a URL. Share it. It works. It disappears later. Your app stays on your machine.
+**Boom.** You get a URL. Share it. It works. It vanishes later.
 
-No "set up the coordinator on your own server." No "configure the reverse proxy." No "update your DNS records." Just ✨works✨.
-
----
-
-## ⚡ Here's What's Happening Under The Hood
-
-Okay fine, for those who care: When you run that install script, it:
-
-1. Downloads the Portara CLI
-2. Spins up a lightweight local coordinator (yes, on YOUR machine)
-3. Sets up encrypted tunnels between components
-4. Does all the networking voodoo so you don't have to
-
-**Your Machine (Doing Everything):**  
-`CLI 🧑‍💻 ↔ 🤖 Local Coordinator ↔ 🔗 Encrypted Tunnel ↔ 🌐 Public URL`  
-
-Dashboard (optional) -- also on your machine, because why not?
-
-Everything runs locally. No data leaves unless you're sharing a tunnel. You're basically your own tunnel service, minus the 3-hour setup tutorial.
+<details>
+<summary>🤔 Netlify? Is this a cloud thing?</summary>
+> Chill — Netlify only hosts the install script. **Everything else runs locally.**
+</details>
 
 ---
 
-## 🧩 What’s the "Local Coordinator"?
+## 🔐 For the Paranoid (Like Me)
 
-Don’t worry, it’s not a monster.  
-It's a tiny backend process that runs on your machine. All Portara clients (CLI now, a web dashboard later) connect to it locally.
-Think of it as the “hub” that reduces duplicated code and keeps things reusable.
+**Option A (Normal):**  
+```bash
+curl -fsSL https://install.portara.netlify.app | sh -
+```
 
-**Tech stack:**  
+**Option B (Read First):**  
+```bash
+git clone https://github.com/Mohammad-Ali-Rauf/portara
+cat portara/install.sh
+cd portara && bun ./install.sh
+```
+
+**Option C (DIY):**  
+```bash
+# Compile from source (you’re on your own)
+```
+
+> **Bottom line:** Code is public. Script is 100 lines. Coordinator runs **locally**.  
+> Still nervous? Maybe don’t run random tunneling tools.
+
+---
+
+<details>
+<summary>⚡ Technical Deep Dive</summary>
+
+### How It Works
+
+When you run `portara expose`, here’s the flow:
+
+```
+[Your App]  
+    │
+    ▼
+[Portara CLI] ←→ [Local Coordinator] ←→ [Encrypted Tunnel] ←→ [Public URL]
+    ▲
+    │
+[You (via terminal or dashboard)]
+```
+
+✅ **All components run on your machine**  
+✅ **Tunnels are end-to-end encrypted**  
+✅ **No data leaves your box unless you’re actively sharing**
+
+The coordinator is a lightweight Elysia.js server that handles routing, encryption, and tunnel lifecycle—locally, always.
+
+</details>
+
+<details>
+<summary>🧩 What’s the “Local Coordinator”?</summary>
+
+A tiny backend that runs **on your machine**, acting as the hub for all Portara operations.
+
+**Tech Stack:**  
 - CLI → TypeScript + Bun.js  
-- Local Coordinator → Elysia.js  
-- Dashboard/Web Client → TanStack Start  
+- Coordinator → Elysia.js  
+- Dashboard → TanStack Start  
 
-That’s it. No rocket science, just clean architecture.
+Clean. Simple. No overengineering.
+</details>
 
 ---
 
 ## 🚀 Commands
 
 ```bash
-# The classics:  
-portara expose <port>    # 🎯 Create a tunnel  
-portara close <port>     # 🔪 Kill a tunnel  
-portara list             # 📋 List active tunnels  
+# The classics:
+portara expose <port>    # Create tunnel  
+portara close <port>     # Kill tunnel  
+portara list             # List active tunnels  
 
-# The extras:  
-portara config           # ⚙️ Change settings (rarely needed)
+# The extras:
+portara config           # Tweak settings (optional)
 
-# The extras of the extras which you need only if you are either possessed or you like to copy me without understanding concepts
-portara freeze <port>    # ❄️  Pause a tunnel (preserves URL, stops traffic)
-portara unfreeze <port>  # 🔥 Resume a paused tunnel
+# The “I’m fancy” tier:
+portara freeze <port>    # ❄️ Pause tunnel (URL preserved, traffic stops)  
+portara unfreeze <port>  # ▶️ Resume tunnel
 ```
 
----
+<details>
+<summary>❄️ Freeze/Unfreeze Explained</summary>
 
-## 🛠️ Programmable & Configurable
+Freezing a tunnel **Freezing pauses traffic and stops the expiration timer, so your tunnel picks up right where it left off.**.  
+Example:  
+- You start a tunnel (15-min TTL)  
+- Run for 2 minutes → **13 mins left**  
+- Freeze for 1 hour → timer **doesn’t tick**  
+- Unfreeze → still **13 minutes remaining**
 
-- Everything configurable in `portara.toml` (but you don't "need" to touch it but you may if you "want" to)
-- Automate, script, or tweak tunnels and settings
-- Power users rejoice — the CLI and dashboard are fully programmable
-- *"But I just want to share localhost"* → Cool, ignore this section entirely
+Perfect for demos, meetings, or coffee breaks without losing your URL.
+</details>
 
----
+<details>
+<summary>🛠️ Programmable & Configurable</summary>
 
-## 🏗️ Advanced Mode (Optional)
+- Config via `portara.toml` (optional)  
+- Automate tunnels, script workflows, customize TTL  
+- *“But I just want to share localhost?”* → Cool, ignore all this.
+</details>
+
+<details>
+<summary>🏗️ Advanced Mode: Real-World Use Cases</summary>
+
+While the install script handles everything for most users, you *can* run the coordinator manually:
 
 ```bash
-# Run just the coordinator (why though?)
-# (Image not yet public — coming soon!)
-docker run -p 8080:8080 mohammadalirauf/portara/coordinator  
+docker run -p 8080:8080 mohammadalirauf/portara/coordinator
 ```
 
-But like… the curl command does this automatically. You're just making work for yourself. 😅
+**Why would you?**  
+- **CI/CD pipelines**: Pre-spin a coordinator in a test container to validate tunnel behavior  
+- **Containerized demos**: Bundle your app + Portara coordinator in a single Docker Compose setup for live workshops  
+- **Air-gapped dev**: Audit & run coordinator in isolated environments
+- **Making your own client**: Create your own client which hits the coordinator's API
 
-> Maybe someday v2 of Local Coordinator made in GraphQL instead of only REST? Just a thought. 😂
-
----
-
-## ✨ Why This Doesn't Suck
-
-- ✅ No signup — not even a "enter your email for spam"
-- ✅ No credit card — not today, SaaS overlords
-- ✅ No config files — unless you want them
-- ✅ No persistent cloud — coordinator runs on YOUR machine
-- ✅ No patience required — it works in under 10 seconds (or your localhost owes you an apology)
+> ⚠️ But honestly—if you’re not doing something like this, just use the one-liner. Less work = more coffee ☕.
+</details>
 
 ---
 
-## 🎯 The Real Vibe
+## ✅ Why This Doesn’t Suck
 
-Portara = The "I don't have time for this shit" solution to localhost sharing. For when:
+| Feature                | Traditional Tools 🥱          | **Portara** 🚀               |
+|------------------------|-------------------------------|------------------------------|
+| **Signup Required?**   | ✉️ Email? Phone? Soul?        | ❌ **No signup** — not even spammy emails |
+| **Credit Card?**       | 💳 “Free tier” with strings   | ❌ **No credit card** — SaaS overlords blocked |
+| **Config Files?**      | 📄 `ngrok.yml`, `.env`, `nginx.conf`… | ❌ No config — unless you’re bored and **want** to geek out. |
+| **Cloud Dependency?**  | ☁️ Your data routes through their servers | 💻 **Everything local** — your machine, your rules |
+| **Speed**              | ⏳ “Hold on while I read the docs…” | ⚡ **Works in <10 sec** — or your localhost owes you an apology |
 
-- Your designer needs to see the UI NOW
-- Your client is impatient and refreshing their email
-- You're testing webhooks and ngrok's free tier ran out
-- You just want something that WORKS without the ceremony
+---
 
-*"But what about enterprise features?"* Bro, you got a temporary URL in under 10 seconds. Sometimes that's enough. 😂
+## 🎯 Reasons I built it?
+
+Portara = **“I don’t have time for this shit”** localhost sharing. Perfect when:
+- Your designer needs to see the UI **NOW**  
+- Your client’s refreshing their email like it’s a slot machine  
+- You hate pay-as-you-go pricing with surprise bills  
+- You just want it to **work**, not become a networking PhD  
+
+> *“But what about enterprise features?”*  
+> Bro. You got a secure, temporary URL in **under 10 seconds**.  
+> Sometimes that’s **plenty**.
 
 ---
 
-##  🛠️ Hacking on Portara?
-
-Clone the repo, run ```bun install```, and check ```DEVELOP.md``` (when it exists 😅).
-
----
+<details>
+<summary>🛠️ Want to help me?</summary>
+   
+Clone the repo, run `bun install`, and check `DEVELOP.md` *(when it exists… probably after coffee ☕)*.
+</details>
 
 ## 📜 License
 
-MIT — free, open source, hackable. The curl command just makes it easy for normal humans.
+MIT — free, open source, and **gloriously hackable**.
 
 ---
 
-Try it or don't. Your localhost-sharing anxiety is your own problem. 😉
+Try it or don’t.  
+Your localhost-sharing anxiety? That’s on you. 😏
